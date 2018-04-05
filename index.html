@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head> 
+<title> Social Auth </title>
+<meta charset="UTF-8" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> 
+  
+  <style media="screen">
+  	#fb-btn{margin-top:15px; margin-right:6px;}
+  	#profile{display:none;}
+  	
+  </style>
+  
+</head>
+
+<body>
+
+	
+
+	<script>
+	  window.fbAsyncInit = function() {
+	    FB.init({
+	      appId      : '157336164956345',
+	      cookie     : true,
+	      xfbml      : true,
+	      version    : 'v2.12'
+	});
+	
+	
+	FB.getLoginStatus(function(response) {
+	    statusChangeCallback(response);
+	});      
+	  };
+
+	  (function(d, s, id){
+	     var js, fjs = d.getElementsByTagName(s)[0];
+	     if (d.getElementById(id)) {return;}
+	     js = d.createElement(s); js.id = id;
+	     js.src = "https://connect.facebook.net/en_US/sdk.js";
+	     fjs.parentNode.insertBefore(js, fjs);
+	   }(document, 'script', 'facebook-jssdk'));
+
+
+	function statusChangeCallback(response)
+	{
+		if(response.status==='connected')
+		{
+			console.log("Logged in and Authenticated");
+			setElement(true);
+			testApi();
+		}
+		else
+		{
+			console.log("Not Authenticated");
+			setElement(false);
+		}
+	}
+
+	
+	function checkLoginState() {
+	  FB.getLoginStatus(function(response) {
+	    statusChangeCallback(response);
+	  });
+	}
+
+	function setElement(isLoggedIn)
+	{
+		if(isLoggedIn)
+		{
+			//if user logged in sucessfully
+			document.getElementById("profile").style.display = "block"; //show profiel details tag
+			document.getElementById("fb-btn").style.display = "none";//hide login button
+			document.getElementById("warnMsg").style.display = "none" //hide warning message
+			document.getElementById("log_out_btn").style.display="block" //show logout bbutton
+			document.getElementById('profImg').style.display='inline' //show profile Image
+			document.getElementById('feed').style.display='block' //show feed 
+
+			document
+		}
+		else
+		{
+			//if user not logged in sucessfully
+			document.getElementById('profile').style.display='none'; //hide profiel details tag
+			document.getElementById('fb-btn').style.display='block'; //show login button
+			document.getElementById('log_out_btn').style.display='none' //hide logout bbutton
+			document.getElementById('warnMsg').style.display='block' //show warning message
+			document.getElementById('profImg').style.display='none'; //hide profile Image
+			document.getElementById('feed').style.display='none' //hide feed 
+		}
+	}
+	
+	function logout()
+	{
+		FB.logout(function(response)
+		{
+			setElement(false);
+			console.log("LoggedOut")
+		});
+	}
+
+	function testApi()
+	{
+		//api to get general profile infos
+		FB.api('me/?fields=id,name,email,birthday,languages,link,location,devices',function (response)
+		{
+			if(response && !response.error)
+			{
+				//function to pass the response
+				console.log(response)
+				buildprofile(response);
+				// console.log("device : "+response.languages.data[0].name);
+			}
+		})
+
+	//api to get feed in facebook
+	FB.api('me/feed',function(response){
+
+		if(response && !response.error)
+		{
+			console.log(response);
+			buildfeed(response);
+		}
+
+	})
+
+	//api to grab profile photo
+	FB.api('me?fields=picture',function(response){
+
+		console.log(response);
+		fetchpic(response);
+
+	})
+
+
+	}
+
+//function for build genral profile informations
+	function buildprofile(user)
+	{
+		let profile = `
+									<h3>Logged User : ${user.name}</h3>
+								<ul class="list-group">
+    							<li class="list-group-item list-group-item-info">Facebook ID  <span style="padding-left:15px;">								: ${user.id} 			</span>																	</li>
+    							<li class="list-group-item list-group-item-info">E-Mail      	  <span style="padding-left:56px;">							:	${user.email}	</span>																		</li>
+									<li class="list-group-item list-group-item-info">Link     				  <span style="padding-left:70px;">					: <a href="${user.link}" target="_blank"> ${user.link} </a></li>
+									<li class="list-group-item list-group-item-info">Birthday        <span style="padding-left:43px;"> 						: 		${user.birthday}																		</li>
+										<li class="list-group-item list-group-item-info">Location        <span style="padding-left:43px;"> 					: 		${user.location.name}																</li>
+											<li class="list-group-item list-group-item-info">Device        <span style="padding-left:43px;"> 					: 		Android										</li>
+
+  							</ul> `
+
+		document.getElementById("profile").innerHTML=profile;
+	}
+
+
+	function buildfeed(feed)
+	{
+		let output=`<h4> Latest Posts </h4>`
+
+		for(let i in feed.data)
+		{
+			//console.log("Feed Datas : "+feed.data);
+
+			if(feed.data[i].message)
+			{
+				output += ` <div class="well"> ${feed.data[i].message}  <br/> <b><i>Created Time</b></i> : ${feed.data[i].created_time}</div> `
+			}
+
+		}
+
+		document.getElementById("feed").innerHTML=output;
+	}
+
+	function fetchpic(pictureResponse)
+	{
+		console.log("Inside Fetch Function : "+pictureResponse.picture.data.url);
+		
+
+		var x = document.createElement("IMG");
+    x.setAttribute("src", pictureResponse.picture.data.url);
+		x.setAttribute("width","80");
+		x.setAttribute("height","80");
+		document.getElementById("profImg").appendChild(x);
+
+	}
+	
+	</script>
+
+		<nav class="navbar navbar-inverse">
+	  <div class="container-fluid">
+	    <div class="navbar-header">
+	      <a class="navbar-brand" href="#">Grab Your Profile Details</a>
+	    </div>
+	    <ul class="nav navbar-nav">
+	      <li class="active"><a href="index.html">Scope 1 (Basic Profile Details)</a></li>
+				<li ><a href="scope2.html">Scope 2 </a></li>
+				<li><code>Developed By : KGNP</code></li>
+			</ul>
+			
+	    <ul class="nav navbar-nav navbar-right">
+     	 <li id="log_out_btn"><a href="#" onclick="logout()"><span class="glyphicon glyphicon-user"></span> LogOut</a></li>
+      		<!--facebook Login Button-->
+			<fb:login-button 
+			  id="fb-btn"
+			  scope="public_profile,email"
+			  onlogin="checkLoginState();">
+			</fb:login-button>	
+			
+    	</ul>
+	  </div>
+	</nav>
+
+	<div class="container">
+		<h4 id='warnMsg'>Please Login to your facebook account to show details</h4>
+		<div id="profImg"></div>
+		<div id="profile"></div>
+		<div id="feed"></div>
+	</div>
+
+
+	
+
+</body>
+</html>
